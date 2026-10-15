@@ -1,0 +1,32 @@
+﻿services:
+  db:
+    image: postgres:16
+    container_name: postgres-iot
+    environment:
+      POSTGRES_USER: iot
+      POSTGRES_PASSWORD: iot_pass
+      POSTGRES_DB: iotdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iot -d iotdb"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: dashboard-iot
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./:/app
+
+volumes:
+  pgdata:
